@@ -560,8 +560,8 @@ blockC(-11.85,AD.doorZ+.15,.5,.5);
 /* ---------------- human ---------------- */
 function kummaTex(col){ return tex(512,64,(g,w,h)=>{ g.fillStyle='#f8f5ec'; g.fillRect(0,0,w,h);
     g.strokeStyle=col; g.fillStyle=col; g.lineWidth=3;
-    for(let x=0;x<w;x+=32){ g.beginPath(); g.moveTo(x,32); g.lineTo(x+16,14); g.lineTo(x+32,32); g.lineTo(x+16,50); g.closePath(); g.stroke(); g.beginPath(); g.arc(x+16,32,3,0,7); g.fill(); }
-    g.fillRect(0,4,w,3); g.fillRect(0,h-7,w,3);
+    for(let x=0;x<w;x+=32){ g.beginPath(); g.moveTo(x,32); g.lineTo(x+16,16); g.lineTo(x+32,32); g.lineTo(x+16,48); g.closePath(); g.fill(); g.fillStyle='#f8f5ec'; g.beginPath(); g.arc(x+16,32,4,0,7); g.fill(); g.fillStyle=col; }
+    g.fillRect(0,2,w,7); g.fillRect(0,h-9,w,7);
     g.fillStyle='rgba(120,90,60,.35)'; for(let i=0;i<260;i++) g.fillRect(Math.random()*w,Math.random()*h,1.5,1.5); }); }
 function kummaTopTex(col){ return tex(256,256,(g,w,h)=>{ g.fillStyle='#f8f5ec'; g.fillRect(0,0,w,h); g.strokeStyle=col; g.fillStyle=col; g.lineWidth=3;
     for(let r=24;r<128;r+=22){ g.beginPath(); g.arc(128,128,r,0,7); g.stroke(); }
