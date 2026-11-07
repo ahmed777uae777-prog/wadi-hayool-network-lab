@@ -836,7 +836,7 @@ function driveHud(c){
   $('infoText').innerHTML='<b>'+c.def.name+' · '+kmh+' كم/س'+(c.v<-.2?' · رجوع':'')+'</b>'+msg;
   const btn=$('actionBtn'); btn.disabled=!ok; btn.textContent=ok?'انزل من السيارة':driving()?'اركن في الموقف '+(c.i+1):'انتظر الركن';
 }
-let nearCar=null;
+let nearCar=null, hudCar=false;
 function findNearCar(){ if(riding()) return null; const px=P.position.x,pz=P.position.z; let best=null,bd=2.9; for(const c of cars){ const dd=Math.hypot(c.x-px,c.z-pz); if(dd<bd&&Math.abs(c.v)<.5){ bd=dd; best=c; } } return best; }
 
 // ---- class room (PeerJS: the teacher's page is the hub) ----
@@ -1084,7 +1084,8 @@ function toast(msg,kind=''){ const el=$('toastMsg'); el.innerHTML=msg; el.classN
 
 let near=null;
 function updateNear(){
-  if(riding()){ near=null; nearCar=null; driveHud(myCar()); return; }
+  if(riding()){ near=null; nearCar=null; hudCar=true; driveHud(myCar()); return; }
+  if(hudCar){ hudCar=false; near=null; $('info').hidden=true; }
   nearCar=findNearCar();
   let best=null,bd=1.35; const px=P.position.x,pz=P.position.z;
   for(const d of Object.values(devices)){ const dd=Math.hypot(d.stand.x-px,d.stand.y-pz); if(dd<bd){bd=dd;best=d;} }
