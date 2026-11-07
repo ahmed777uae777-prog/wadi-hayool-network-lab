@@ -558,32 +558,59 @@ blockC(-11.85,AD.doorZ+.15,.5,.5);
 
 
 /* ---------------- human ---------------- */
-function makeHuman(){
+function kummaTex(col){ return tex(512,64,(g,w,h)=>{ g.fillStyle='#f8f5ec'; g.fillRect(0,0,w,h);
+    g.strokeStyle=col; g.fillStyle=col; g.lineWidth=3;
+    for(let x=0;x<w;x+=32){ g.beginPath(); g.moveTo(x,32); g.lineTo(x+16,14); g.lineTo(x+32,32); g.lineTo(x+16,50); g.closePath(); g.stroke(); g.beginPath(); g.arc(x+16,32,3,0,7); g.fill(); }
+    g.fillRect(0,4,w,3); g.fillRect(0,h-7,w,3);
+    g.fillStyle='rgba(120,90,60,.35)'; for(let i=0;i<260;i++) g.fillRect(Math.random()*w,Math.random()*h,1.5,1.5); }); }
+function kummaTopTex(col){ return tex(256,256,(g,w,h)=>{ g.fillStyle='#f8f5ec'; g.fillRect(0,0,w,h); g.strokeStyle=col; g.fillStyle=col; g.lineWidth=3;
+    for(let r=24;r<128;r+=22){ g.beginPath(); g.arc(128,128,r,0,7); g.stroke(); }
+    for(let a=0;a<16;a++){ const t=a/16*Math.PI*2; g.beginPath(); g.arc(128+Math.cos(t)*90,128+Math.sin(t)*90,4,0,7); g.fill(); } }); }
+function makeHuman(opt={}){
+  const kid=!!opt.student;
   const root=new THREE.Group();
-  const SK='#b9805a';
+  const SK=kid?'#c48c62':'#b9805a';
   const skin=new THREE.MeshStandardMaterial({color:SK,roughness:.6,envMapIntensity:.35});
-  const shirt=M(0x274b6d,{roughness:.85}), pants=M(0x30343a,{roughness:.9}), shoe=M(0x1b1712,{roughness:.45}),
+  const robe=M(0xf7f7f3,{roughness:.82,side:THREE.DoubleSide});
+  const shirt=kid?robe:M(0x274b6d,{roughness:.85}), pants=kid?robe:M(0x30343a,{roughness:.9}), shoe=kid?M(0x6b4a2e,{roughness:.6}):M(0x1b1712,{roughness:.45}),
         vest=M(0xff7417,{roughness:.6,emissive:0x2a0e00}), stripe=M(0xe3e8eb,{metalness:.75,roughness:.22}), helm=M(0xf6f5ef,{roughness:.28}), hair=M(0x16100c,{roughness:.9}), belt=M(0x2a2118,{roughness:.5}), buckle=M(0xc9ccd0,{metalness:.9,roughness:.25});
   const L=(pts,mat,parent,y=0,seg=32)=>{ const m=new THREE.Mesh(new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),seg),mat); m.position.y=y; m.castShadow=true; parent.add(m); return m; };
   const hips=new THREE.Group(); hips.position.y=.94; root.add(hips);
   L([[.0,-.08],[.13,-.07],[.155,-.02],[.15,.04],[.14,.07]],pants,hips).scale.z=.72;
   const torso=new THREE.Group(); torso.position.y=.05; hips.add(torso);
   L([[.14,-.01],[.15,.05],[.155,.16],[.17,.3],[.185,.4],[.18,.47],[.14,.52],[.07,.555],[.0,.56]],shirt,torso).scale.z=.66;
+  if(kid){
+    // dishdasha: the robe falls from the waist to the ankles; the furakha tassel hangs from the collar
+    L([[.145,.08],[.158,-.06],[.176,-.34],[.196,-.62],[.212,-.83]],robe,hips).scale.z=.8;
+    L([[.072,.535],[.078,.555]],robe,torso);
+    cyl(.006,.006,.15,M(0xe9e4d6,{roughness:.7}),0,.44,.118,torso,8);
+    mesh(new THREE.SphereGeometry(.016,10,8),M(0xe9e4d6,{roughness:.7}),0,.36,.12,torso);
+  } else {
   L([[.152,.06],[.162,.16],[.177,.3],[.192,.4],[.182,.46],[.15,.5]],vest,torso).scale.z=.69;
   for(const y of [.17,.33]){ const r=y<.2?.166:.182; L([[r+.003,y],[r+.004,y+.025]],stripe,torso).scale.z=.7; }
   L([[.152,-.015],[.156,.03]],belt,torso).scale.z=.72; box(.05,.035,.012,buckle,0,.008,.112,torso,false);
   box(.035,.06,.01,M(0x1d2c3b),-.07,.38,.13,torso,false); // ID badge
   box(.03,.04,.004,whiteP,-.07,.375,.136,torso,false);
+  }
   cyl(.045,.052,.085,skin,0,.58,0,torso,16);
   // head
-  const Hd=makeHead({female:false,skin:SK,blush:'rgba(170,80,60,.18)',brow:'#1b120c',browW:6,iris:'#3a2414',lip:'#8e5248',beard:'#1e140e'});
+  const Hd=makeHead(kid?{female:false,skin:SK,blush:'rgba(200,100,80,.22)',brow:'#1b120c',browW:5,iris:'#3a2414',lip:'#9a5a4e'}:{female:false,skin:SK,blush:'rgba(170,80,60,.18)',brow:'#1b120c',browW:6,iris:'#3a2414',lip:'#8e5248',beard:'#1e140e'});
   const head=Hd.head; head.position.set(0,.72,.008); torso.add(head);
   const hr=new THREE.Mesh(new THREE.SphereGeometry(.104,30,20,Math.PI*.95,Math.PI*1.1,Math.PI*.3,Math.PI*.38),hair); hr.scale.set(.9,1.1,1); hr.position.set(0,.005,-.004); head.add(hr);
+  if(kid){
+    // Omani kumma: embroidered cap in the student's colour
+    const kc=opt.color||'#2f6f6a';
+    const side=new THREE.Mesh(new THREE.CylinderGeometry(.106,.11,.085,36,1,true),new THREE.MeshStandardMaterial({map:kummaTex(kc),roughness:.8,side:THREE.DoubleSide}));
+    side.position.y=.062; side.castShadow=true; head.add(side);
+    const top=new THREE.Mesh(new THREE.CircleGeometry(.106,36),new THREE.MeshStandardMaterial({map:kummaTopTex(kc),roughness:.8}));
+    top.rotation.x=-Math.PI/2; top.position.y=.104; head.add(top);
+  } else {
   // hard hat
   const hat=new THREE.Mesh(new THREE.SphereGeometry(.118,36,16,0,Math.PI*2,0,Math.PI/2),helm); hat.scale.set(.94,.9,1.08); hat.position.y=.045; hat.castShadow=true; head.add(hat);
   const brim=new THREE.Mesh(new THREE.CylinderGeometry(.13,.135,.012,36),helm); brim.scale.set(.96,1,1.12); brim.position.set(0,.047,.012); head.add(brim);
   const peak=box(.12,.008,.06,helm,0,.05,.13,head); peak.rotation.x=.12;
   box(.016,.05,.2,helm,0,.13,0,head).scale.y=.8;
+  }
   const arms={}, legs={};
   for(const s of [-1,1]){
     const sh=new THREE.Group(); sh.position.set(s*.205,.46,0); torso.add(sh);
@@ -607,6 +634,7 @@ function makeHuman(){
     legs[s]={hp,kn};
   }
   root.traverse(o=>{ if(o.isMesh){ o.castShadow=true; } });
+  if(kid) root.scale.setScalar(.8);
   return {root,hips,torso,head,arms,legs};
 }
 const H=makeHuman(); const P=H.root; scene.add(P);
@@ -871,7 +899,7 @@ function joinRoom(code,name){
       conn.on('open',()=>{ try{ conn.send({t:'hello',name}); }catch(_){} });
       conn.on('data',d=>{ if(!d||typeof d!=='object') return;
         if(d.t==='full'){ fail('full'); return; }
-        if(d.t==='welcome'&&!done){ done=true; clearTimeout(to); net.mode='client'; net.peer=peer; net.host=conn; net.code=code; me.id=String(d.id); me.name=name; me.role='student'; me.color=String(d.color||'#38b6ff'); startNet(); res(); return; }
+        if(d.t==='welcome'&&!done){ done=true; clearTimeout(to); net.mode='client'; net.peer=peer; net.host=conn; net.code=code; me.id=String(d.id); me.name=name; me.role='student'; me.color=/^#[0-9a-f]{6}$/i.test(d.color)?d.color:'#38b6ff'; dressLocalAsStudent(); startNet(); res(); return; }
         if(done) clientOnData(d); });
       conn.on('close',()=>{ if(done&&net.mode==='client') hostGone(); else fail('noroom'); });
       conn.on('error',()=>{}); });
@@ -915,10 +943,17 @@ addEventListener('pagehide',()=>{ if(net.mode==='host'){ for(const cn of net.con
 
 // ---- classmates in the world ----
 function ensureAvatar(p){
-  if(p.h) return; const h=makeHuman(); scene.add(h.root); p.h=h; p.ph=0; p.amt=0;
-  if(p.role!=='teacher'){ const col=new THREE.Color(p.color); h.root.traverse(o=>{ if(o.isMesh&&o.material&&o.material.color&&o.material.color.getHex()===0xff7417){ o.material=o.material.clone(); o.material.color.copy(col); o.material.emissive&&o.material.emissive.setHex(0x000000); } }); }
-  p.lab=label(p.name,p.role==='teacher'?'المعلم':null); p.lab.position.y=2.2; p.lab.scale.multiplyScalar(.85); h.root.add(p.lab);
+  if(p.h) return; const kid=p.role!=='teacher'; const h=makeHuman({student:kid,color:p.color}); scene.add(h.root); p.h=h; p.ph=0; p.amt=0;
+  p.lab=label(p.name,kid?null:'المعلم'); p.lab.position.y=kid?2.45:2.2; p.lab.scale.multiplyScalar(kid?1.05:.85); h.root.add(p.lab);
   h.root.position.set(p.x,0,p.z); h.root.rotation.y=p.ry;
+}
+function dressLocalAsStudent(){
+  const S=makeHuman({student:true,color:me.color});
+  for(const c of [...P.children]) P.remove(c);
+  for(const c of [...S.root.children]) P.add(c);
+  P.scale.copy(S.root.scale);
+  H.hips=S.hips; H.torso=S.torso; H.head=S.head; H.arms=S.arms; H.legs=S.legs;
+  H.arms[1].el.add(coil);
 }
 function removeAvatar(p){ if(p&&p.h){ scene.remove(p.h.root); p.h=null; } }
 function updateWorldPeers(dt){
@@ -927,7 +962,7 @@ function updateWorldPeers(dt){
     if(!mine&&net.mode!=='solo'){ const k=Math.min(1,dt*8); c.x+=(c.tx-c.x)*k; c.z+=(c.tz-c.z)*k; let d=c.th-c.h; d=Math.atan2(Math.sin(d),Math.cos(d)); c.h+=d*k; c.steer+=(c.ts-c.steer)*k; }
     for(const w of c.wheels) w.rotation.x+=c.v/.36*dt;
     syncCar(c);
-    c.figs.forEach((f,k)=>{ f.visible=!!c.seats[k]&&!(c.seats[k]===me.id&&fp); });
+    c.figs.forEach((f,k)=>{ const id=c.seats[k]; f.visible=!!id&&!(id===me.id&&fp); if(id){ const kid=id!=='t'&&id!=='solo'; f.scale.setScalar(kid?.86:1); } });
   }
   for(const p of players.values()){
     if(p.id===me.id) continue; ensureAvatar(p);
